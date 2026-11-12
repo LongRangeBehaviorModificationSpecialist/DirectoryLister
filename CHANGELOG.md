@@ -8,9 +8,22 @@
 
 #### [1.2.01] - 2026-11-12
 
+##### Changed
+
+- Move the "UTC" marker to the right of the timestamps in the manifest file.
+
 ##### Added
 
 - Add warning for examiner regarding cloud-synced folders.
+- Add dedicated function to handle the formatting of the text printed to the console.
+- Add 'Examiner Notice' section to the main comment-based help.
+- Edited format of a few lines in the manifest file (split the long output path to two seperate lines - one for the directory and one for the file name).
+- Add SHA256 hash value for the manifest file to be displayed to screen (but not recorded anywhere).
+- Add more output lines to show progress update of the script.
+
+##### Removed
+
+- Remove duplicate variables.
 
 #### [1.2] - 2026-11-11
 
@@ -44,4 +57,4 @@
 
 ##### Added
 
-- Comment-based help for the overall file.
+- Add comment-based help for the overall file.

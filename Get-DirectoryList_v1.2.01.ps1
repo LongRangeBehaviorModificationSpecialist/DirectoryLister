@@ -548,6 +548,57 @@ function Resolve-LinkTargetPath {
 }
 
 
+function Show-Message {
+    param(
+        [Parameter(Mandatory = $false)]
+        [ValidateSet("INFO","HIGHLIGHT","WARNING","ERROR")]
+        [string]$Level = "INFO",
+
+        [string]$Message,
+        [switch]$NoTime,
+        [switch]$NoNewline,
+        [switch]$SpaceAbove,
+        [int]$Indent
+    )
+
+    if ($SpaceAbove) {
+        Write-Host ""
+    }
+
+    # Determine display color based on Level
+    $DisplayColor = switch ($Level) {
+        "HIGHLIGHT" { "Green" }
+        "WARNING"   {
+            $Message = "WARNING: " + $Message
+            "Yellow"
+        }
+        "ERROR"     {
+            $Message = "ERROR: " + $Message
+            "Red"
+        }
+        "INFO"      { "Gray" }
+    }
+
+    if (-not $NoTime) {
+        $Timestamp = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+        Write-Host "[$Timestamp] " -ForegroundColor Cyan -NoNewline
+    }
+
+    # Apply dynamic indentation if the parameter was provided
+    if ($PSBoundParameters.ContainsKey("Indent")) {
+        $Message = (" " * $Indent) + $Message
+    }
+
+    # Print the actual message, respecting the NoNewline switch
+    if ($NoNewline) {
+        Write-Host $Message -ForegroundColor $DisplayColor -NoNewline
+    }
+    else {
+        Write-Host $Message -ForegroundColor $DisplayColor
+    }
+}
+
+
 function Format-Duration {
     <#
     .SYNOPSIS
@@ -707,7 +758,7 @@ function Write-ScanProgress {
     $Span   = $Stopwatch.Elapsed
     $Prefix = [string]::Format(
         $Inv,
-        "`n[{0:00}:{1:00}:{2:00}] Dirs: {3:N0} | Files: {4:N0} | ",
+        "[{0:00}:{1:00}:{2:00}] Dirs: {3:N0} | Files: {4:N0} | ",
         [int][math]::Floor($Span.TotalHours),
         $Span.Minutes,
         $Span.Seconds,
@@ -716,7 +767,7 @@ function Write-ScanProgress {
     )
 
     if ($ProgressRedirected) {
-        Write-Host "$Prefix$CurrentDir"
+        Show-Message -Message "$Prefix$CurrentDir" -Level INFO
         return
     }
 
@@ -759,7 +810,7 @@ function Write-ScanWarning {
     )
 
     Clear-ScanProgress
-    Write-Warning $Message
+    Show-Message -Message $Message -Level WARNING
 }
 
 
@@ -772,7 +823,7 @@ function Show-ExaminerNotice {
     $Notice = @'
 +------------------------------------------------+
 |                                                |
-|             READ BEFORE CONTINUING             |
+|                  !! NOTICE !!                  |
 |                                                |
 +------------------------------------------------+
 
@@ -851,8 +902,8 @@ else {
 }
 
 if ($NoticeCancelled) {
-    Write-Host "`nCancelled by the examiner. Nothing was read or written.`n" `
-        -ForegroundColor Yellow
+    Show-Message -Message "Cancelled by the examiner. Nothing was read or written." `
+        -Level WARNING -SpaceAbove
     exit 1
 }
 
@@ -871,12 +922,14 @@ $Stopwatch       = [System.Diagnostics.Stopwatch]::StartNew()
 
 $RootPath = Resolve-FullPath -Path $Folder
 
-Write-Host "`nEnumerating target directory: " -ForegroundColor Gray -NoNewline
-Write-Host "$RootPath " -ForegroundColor Green -NoNewline
-Write-Host "and sub-directories.`nPlease wait, this may take a hot minute..." -ForegroundColor Gray
+Show-Message -Message "Enumerating target directory: " -Level INFO -NoNewline -SpaceAbove
+Show-Message -Message "$RootPath " -Level HIGHLIGHT -NoNewLine -NoTime
+Show-Message -Message "and sub-directories..." -Level Info -NoTime
+# Show-Message -Message "Please wait, this may take a hot minute..." -Level INFO -NoTime -Indent 27
 
 if (-not [System.IO.Directory]::Exists($RootPath)) {
-    Write-Warning "Target directory was not found => $Folder"
+    Show-Message -Message "Target directory was not found:" -Level WARNING
+    Show-Message -Message "$Folder" -Level HIGHLIGHT -Indent 27
     exit 1
 }
 
@@ -889,13 +942,14 @@ $CsvDir = Resolve-FullPath -Path $CsvDir
 
 if ([string]::IsNullOrEmpty($CsvDir)) {
 
-    Write-Error "The '-Csv' parameter must include a directory path, e.g. E:\case1"
+    Show-Message -Message "The '-Csv' parameter must include a directory path, e.g. E:\case1" -Level ERROR
     exit 1
 }
 if (-not [System.IO.Directory]::Exists($CsvDir)) {
     # Deliberately not created
     # Creating directories is an extra change to the file system
-    Write-Error "The output directory provided does not exist => $CsvDir"
+    Show-Message -Message "The output directory provided does not exist:" -Level ERROR
+    Show-Message -Message "$CsvDir" -Level HIGHLIGHT -Indent 27
     exit 1
 }
 
@@ -932,8 +986,8 @@ if (-not $VolumeSerial) {
     if (-not $SerialNote) {
         $SerialNote = "Unavailable"
     }
-    Write-Warning ("Volume Serial Number lookup failed ($SerialNote). " +
-        "'NOSERIAL' will be used in the file name.")
+    Show-Message -Message ("Volume Serial Number lookup failed ($SerialNote). " +
+        "'NOSERIAL' will be used in the file name.") -Level WARNING
     $VolumeSerial = "NOSERIAL"
 }
 
@@ -954,8 +1008,8 @@ $OutFilePath = [System.IO.Path]::Combine(
 # Would alter the target and pollute the listing
 $RootPrefix = $RootPath.TrimEnd($Sep) + $Sep
 if ($OutFilePath.StartsWith($RootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
-    Write-Error ("Output file would be written inside the folder being examined. " +
-        "Choose an output location outside $RootPath (ideally external media).")
+    Show-Message -Message ("Output file would be written inside the folder being examined. " +
+        "Choose an output location outside $RootPath (ideally external media).") -Level ERROR
     exit 1
 }
 
@@ -965,8 +1019,8 @@ if ([string]::Equals(
         [System.StringComparison]::OrdinalIgnoreCase
         )
     ) {
-    Write-Warning ("Output is on the same volume as the folder being examined. " +
-        "For forensic soundness, write to separate media.")
+    Show-Message -Message ("Output is on the same volume as the folder being examined. " +
+        "For forensic soundness, write to separate media.") -Level WARNING
 }
 
 $IncludePatterns = New-DirPatterns -Names $Include
@@ -1210,8 +1264,8 @@ finally {
 # Hash the finished CSV and write the manifest
 # ----------
 
-Write-Host "Directory walk finished. Hashing the CSV and writing the manifest..." `
-    -ForegroundColor Gray
+Show-Message -Message "Directory walk finished." -Level INFO
+Show-Message -Message "Hashing the CSV and writing the manifest..." -Level INFO
 
 $CsvHash = try {
     Get-FileSha256 -Path $OutFilePath
@@ -1302,7 +1356,7 @@ $Manifest.Add(
     (
         [string]::Format(
             "{0,-21}: {1}",
-            "Start Time (Utc)",
+            "Start Time",
             $StartTime.ToString("o")
         )
     )
@@ -1311,7 +1365,7 @@ $Manifest.Add(
     (
         [string]::Format(
             "{0,-21}: {1}",
-            "End Time (Utc)",
+            "End Time",
             $EndTime.ToString("o")
         )
     )
@@ -1452,15 +1506,6 @@ $Manifest.Add(
         )
     )
 )
-$Manifest.Add(
-    (
-        [string]::Format(
-            "{0,-21}: {1} UTC",
-            "Run Date",
-            $RunDate
-        )
-    )
-)
 
 $Manifest.Add("")
 $Manifest.Add("")
@@ -1558,8 +1603,18 @@ $Manifest.Add(
     (
         [string]::Format(
             "{0,-21}: {1}",
+            "Output Folder",
+            [System.IO.Path]::GetDirectoryName($OutFilePath)
+        )
+    )
+)
+
+$Manifest.Add(
+    (
+        [string]::Format(
+            "{0,-21}: {1}",
             "Csv File Name",
-            $OutFilePath
+            [System.IO.Path]::GetFileName($OutFilePath)
             )
         )
 )
@@ -1685,9 +1740,10 @@ try {
     foreach ($Line in $Manifest) {
         $MWriter.WriteLine($Line)
     }
+    Show-Message -Message "Writing manifest file complete" -Level INFO
 }
 catch {
-    Write-Warning "Could not write manifest => $( $_.Exception.Message )"
+    Write-Warning "Could not write the manifest file => $( $_.Exception.Message )"
     $ManifestPath = $null
 }
 finally {
@@ -1699,44 +1755,63 @@ finally {
     }
 }
 
+try {
+    Show-Message -Message "Hashing manifest file..." -Level INFO
+    $ManifestHash = Get-FileSha256 -Path $ManifestPath
+    Show-Message -Message "Hashing manifest file complete" -Level INFO
+}
+catch {
+    "Unable to hash the manifest file => $( $_.Exception.Message )"
+}
 
-Write-Host ("`n" + "-" * 50 + "`n") -ForegroundColor Green
-Write-Host "Script complete in " -ForegroundColor Gray -NoNewline
-Write-Host "$( $ElapsedTime )`n" -ForegroundColor Green
 
-Write-Host "Enumerated`n" -ForegroundColor Gray
+# Write-Host ("`n" + "-" * 50 + "`n") -ForegroundColor Green
+Show-Message -Message "Script completed in " -Level INFO -NoNewline
+Show-Message -Message "$( $ElapsedTime )" -Level HIGHLIGHT -NoTime
 
-Write-Host "  File$(if ($FileCount -eq 1) { " " } else { "s" })       :  " `
-    -ForegroundColor Gray -NoNewline
-Write-Host "$( [string]::Format($Inv, "{0:N0}", $FileCount) ) " `
-    -ForegroundColor Green
-Write-Host "  Director$(if ($DirRows -eq 1) { "y" } else { "ies" }) :  " `
-    -ForegroundColor Gray -NoNewline
-Write-Host "$( [string]::Format($Inv, "{0:N0}", $DirRows) ) " `
-    -ForegroundColor Green
-Write-Host "  Total Size  :  " -ForegroundColor Gray -NoNewline
-Write-Host "$(Get-FormattedFileSize -Bytes $TotalBytes)`n" `
-    -ForegroundColor Green
+Show-Message -Message "Enumerated:" -Level INFO
 
-Write-Host "Output Path   :  " -ForegroundColor Gray -NoNewline
-Write-Host "$OutFilePath" -ForegroundColor Green
-Write-Host "Csv SHA-256   :  " -ForegroundColor Gray -NoNewline
-Write-Host "$CsvHash" -ForegroundColor Green
+Show-Message -Message "File$(if ($FileCount -eq 1) { " " } else { "s" })       :  " `
+    -Level INFO -NoNewline -NoTime -SpaceAbove -Indent 4
+Show-Message -Message "$( [string]::Format($Inv, "{0:N0}", $FileCount) ) " `
+    -Level HIGHLIGHT -NoTime
+
+Show-Message -Message "Director$(if ($DirRows -eq 1) { "y" } else { "ies" }) :  " `
+    -Level INFO -NoNewline -NoTime -Indent 4
+Show-Message -Message "$( [string]::Format($Inv, "{0:N0}", $DirRows) ) " `
+    -Level HIGHLIGHT -NoTime
+
+Show-Message -Message "Total Size  :  " -Level INFO -NoNewline -NoTime -Indent 4
+Show-Message -Message "$(Get-FormattedFileSize -Bytes $TotalBytes)" `
+    -Level HIGHLIGHT -NoTime
+
+Show-Message -Message "Output Folder:" -Level INFO -SpaceAbove
+Show-Message -Message "$( [System.IO.Path]::GetDirectoryName($OutFilePath) ) " `
+    -Level HIGHLIGHT -NoTime -Indent 27
+
+Show-Message -Message "Csv File Name:" -Level INFO
+Show-Message -Message "$( [System.IO.Path]::GetFileName($OutFilePath) ) " `
+    -Level HIGHLIGHT -NoTime -Indent 27
+
+Show-Message -Message "Csv SHA-256:" -Level INFO
+Show-Message -Message "$CsvHash" -Level HIGHLIGHT -NoTime -Indent 27
 
 
 if ($ManifestPath) {
-    Write-Host "`nManifest File :  " -ForegroundColor Gray -NoNewline
-    Write-Host "$ManifestPath" -ForegroundColor Green
-    Write-Host ("`n" + "-" * 50) -ForegroundColor Green
-}
-else {
-    Write-Host "`n" + "-" * 50
+    Show-Message -Message "Manifest File Name:" -Level INFO
+    Show-Message -Message "$( [System.IO.Path]::GetFileName($ManifestPath) )" `
+        -Level HIGHLIGHT -NoTime -Indent 27
+
+    Show-Message -Message "Manifest SHA-256:" -Level INFO
+    Show-Message -Message "$ManifestHash" -Level HIGHLIGHT -NoTime -Indent 27
 }
 
+Show-Message -Message ("+------------------------------------------------+") -Level HIGHLIGHT -NoTime -SpaceAbove
+
 if ($Errors.Count -gt 0) {
-    Write-Host ("`n$( $Errors.Count ) " +
+    Show-Message -Message ("$( $Errors.Count ) " +
         "error$(if ($Errors.Count -eq 1) { " " } else { "s " })=> " +
-        "see the manifest for details.`n") -ForegroundColor Red
+        "see the manifest for details.`n") -Level ERROR -SpaceAbove
 }
 
 if ($Stopwatch.IsRunning) {
