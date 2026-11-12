@@ -1,38 +1,47 @@
-# Change Log for "Get-DirectoryList_vX.X.ps1"
+### Change Log for "Get-DirectoryList_vX.X.ps1"
 
-All notable changes to this application will be documented in this file.
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org).
+1. All notable changes to this application will be documented in this file.
 
-## [1.2] - 2026-11-11
+2. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-### Changed
+3. This project adheres to [Semantic Versioning](https://semver.org).
+
+#### [1.2.01] - 2026-11-12
+
+##### Added
+
+- Add warning for examiner regarding cloud-synced folders.
+
+#### [1.2] - 2026-11-11
+
+##### Changed
 
 - N/A
 
-### Added
+##### Added
 
 - Line to the output screen to show the script's progress. (The progress display only writes to the console. It doesn’t change the CSV contents or touch the examined volume.)
 - Add "Progress" section to the help text.
 - Add ability for script to follow ReparsePoints and list files and sub-directories.
 
-### Removed
+##### Removed
 
 - N/A
 
-### Fixed
+##### Fixed
 
 - Format for numbers in the manifest file (add comma seperator).
 
-### Deprecated
+##### Deprecated
 
 - N/A
 
-### Security
+##### Security
 
 - N/A
 
-## [1.1] - 2026-11-10
+#### [1.1] - 2026-11-10
 
-### Added
+##### Added
 
 - Comment-based help for the overall file.
