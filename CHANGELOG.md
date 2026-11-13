@@ -1,10 +1,18 @@
 ### Change Log for "Get-DirectoryList_vX.X.ps1"
 
-1. All notable changes to this application will be documented in this file.
+All notable changes to this application will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). This project adheres to [Semantic Versioning](https://semver.org).
 
-2. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+#### [1.2.02] - 2026-11-13
 
-3. This project adheres to [Semantic Versioning](https://semver.org).
+##### Changed
+
+- Change the `Show-Message` function so that it can handle different color text on the same line and added the `-BackgroundColor` parameter.
+- Change format of progress line that is output to the screen. It will be no longer than 120 characters and the number of directories and files scanned are always 6 digits with leading zeros as placeholders.
+
+##### Added
+
+- Add new function, `Write-DirNotFoundMessage` to handle displaying a formatted error message when either the target directory or the output directory is not found.
+- Add line at top of script to disable `PSReadLine` history tracking.
 
 #### [1.2.01] - 2026-11-12
 
@@ -17,7 +25,7 @@
 - Add warning for examiner regarding cloud-synced folders.
 - Add dedicated function to handle the formatting of the text printed to the console.
 - Add 'Examiner Notice' section to the main comment-based help.
-- Edited format of a few lines in the manifest file (split the long output path to two seperate lines - one for the directory and one for the file name).
+- Edit format of long lines in the manifest file (split the long output path to two seperate lines -- one for the directory and one for the file name).
 - Add SHA256 hash value for the manifest file to be displayed to screen (but not recorded anywhere).
 - Add more output lines to show progress update of the script.
 
