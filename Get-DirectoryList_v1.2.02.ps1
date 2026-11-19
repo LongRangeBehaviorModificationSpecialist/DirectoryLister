@@ -587,9 +587,11 @@ function Get-ReparseTarget
 
 function Test-DirIsLink
 {
-    # True for junctions and symbolic links.  Other reparse points (cloud
-    # placeholders, deduplication and so on) have no link target and are
-    # ordinary directories as far as listing goes.
+    <#
+    True for junctions and symbolic links.  Other reparse points (cloud
+    placeholders, deduplication and so on) have no link target and are
+    ordinary directories as far as listing goes.
+    #>
     param
     (
         [System.IO.FileSystemInfo]$Item,
@@ -616,9 +618,11 @@ function Test-DirIsLink
 
 function Resolve-LinkTargetPath
 {
-    # Returns the full path of an existing directory that a reparse point
-    # points to, without trailing separator, or "$null" if it cannot be
-    # resolved.  Relative targets are resolved against the link's parent.
+    <#
+    Returns the full path of an existing directory that a reparse point
+    points to, without trailing separator, or "$null" if it cannot be
+    resolved.  Relative targets are resolved against the link's parent.
+    #>
     param
     (
         [string]$LinkPath,
@@ -666,11 +670,21 @@ function Write-DirNotFoundMessage
         [string]$Folder
     )
 
-    Show-Message -Text "The $DirType DIRECTORY provided was not found => `"$Folder`"" `
-        -Color White -BackgroundColor Red -LinesAbove 1
-    Show-Message -Text "Check the directory path and try again." -Color Red -NoTime -Indent $LargeIndent
-    Show-Message -Text "EXITING..." -Color Red -NoTime -Indent $LargeIndent
-
+    Show-Message `
+        -Text "The $DirType DIRECTORY provided was not found => `"$Folder`"" `
+        -Color White `
+        -BackgroundColor Red `
+        -LinesAbove 1
+    Show-Message `
+        -Text "Check the directory path and try again." `
+        -Color Red `
+        -NoTime `
+        -Indent $LargeIndent
+    Show-Message `
+        -Text "EXITING..." `
+        -Color Red `
+        -NoTime `
+        -Indent $LargeIndent
 }
 
 
