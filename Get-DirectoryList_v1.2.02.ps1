@@ -384,9 +384,11 @@ $ErrorActionPreference = [System.Management.Automation.ActionPreference]::Contin
 
 function Resolve-FullPath
 {
-    # Resolves a path against the PowerShell location (not the .NET
-    # process directory) without touching the disk and without
-    # expanding wildcards.
+    <#
+    Resolves a path against the PowerShell location (not the .NET
+    process directory) without touching the disk and without
+    expanding wildcards.
+    #>
     param
     (
         [string]$Path
