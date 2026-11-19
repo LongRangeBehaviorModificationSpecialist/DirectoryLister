@@ -361,10 +361,11 @@ function Show-Message
     Write-Host
 }
 
-
-# Temporarily disable PowerShell history logging for this process
-# Minimize local artifact footprint by disabling PSReadLine history logging
-# for this session
+<#
+Temporarily disable PowerShell history logging for this process.
+Minimize local artifact footprint by disabling PSReadLine history logging
+for this session
+#>
 if (Get-Module PSReadLine)
 {
     Set-PSReadLineOption -HistorySaveStyle SaveNothing -ErrorAction SilentlyContinue
