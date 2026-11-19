@@ -2168,7 +2168,10 @@ Show-Message `
     -Indent $ShortIndent
 
 Show-Message `
-    -Text ("Total Size  :  ", "$(Get-FormattedFileSize -Bytes $TotalBytes)") `
+    -Text (
+        "Total Size  :  ", 
+        "$(Get-FormattedFileSize -Bytes $TotalBytes)"
+    ) `
     -Color Gray, Green `
     -NoTime `
     -Indent $ShortIndent
