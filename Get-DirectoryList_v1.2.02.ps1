@@ -1222,7 +1222,7 @@ if (-not $VolumeSerial)
     $VolumeSerial = "NOSERIAL"
 }
 
-$SerialPart  = if ($VolumeSerial)
+$SerialPart = if ($VolumeSerial)
 {
     "$( $VolumeSerial )_"
 }
@@ -1293,10 +1293,12 @@ if ($DriveType -eq "Network")
 }
 else
 {
-    $DriveSerialNumber = (Get-Partition `
+    $DriveSerialNumber = (
+        Get-Partition `
         -DriveLetter $DriveLetter `
         -ErrorAction Continue |
-        Get-Disk).SerialNumber.Trim(" ")
+        Get-Disk
+    ).SerialNumber.Trim(" ")
 }
 
 
