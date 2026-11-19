@@ -329,7 +329,8 @@ function Show-Message
     if (-not $NoTime)
     {
         $Timestamp = (Get-Date).ToUniversalTime().ToString(
-            "yyyy.MM.ddTHH.mm.ss.fffZ")
+            "yyyy.MM.ddTHH.mm.ss.fffZ"
+        )
         Write-Host "[$Timestamp] " -ForegroundColor DarkCyan -NoNewline
     }
 
