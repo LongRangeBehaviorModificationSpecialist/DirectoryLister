@@ -368,9 +368,13 @@ for this session
 #>
 if (Get-Module PSReadLine)
 {
-    Set-PSReadLineOption -HistorySaveStyle SaveNothing -ErrorAction SilentlyContinue
-    Show-Message -Text "'PSReadLineOption' has been disabled during execution this script." `
-        -Color Green -LinesAbove 1
+    Set-PSReadLineOption `
+        -HistorySaveStyle SaveNothing `
+        -ErrorAction SilentlyContinue
+    Show-Message `
+        -Text "'PSReadLineOption' has been disabled during execution." `
+        -Color Green `
+        -LinesAbove 1
 }
 
 $ScriptVersion         = "1.2.02"
