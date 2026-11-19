@@ -771,9 +771,11 @@ function Get-FileSha256
 
 function Write-Row
 {
-    # Positional parameters (faster than named ones on very large trees):
-    # Type ("File"|"Directory"), containing-directory path, the item,
-    # reparse target ("" if none)
+    <#
+    Positional parameters (faster than named ones on very large trees):
+    Type ("File"|"Directory"), containing-directory path, the item,
+    reparse target ("" if none)
+    #>
     param
     (
         [string]$Type,
@@ -822,12 +824,13 @@ function Write-Row
 #
 # ------------------------------
 
-# One status line is redrawn in place, at most once every $ProgressEveryMs
-# milliseconds, so reporting costs next to nothing on very large trees.  The
-# walk streams to the CSV and never builds a full list first, so the total is
-# unknown: counters are shown instead of a percentage.  If console output is
-# redirected, a plain line is written every 2.5 seconds instead.
-
+<#
+One status line is redrawn in place, at most once every $ProgressEveryMs
+milliseconds, so reporting costs next to nothing on very large trees.  The
+walk streams to the CSV and never builds a full list first, so the total is
+unknown: counters are shown instead of a percentage.  If console output is
+redirected, a plain line is written every 2.5 seconds instead.
+#>
 $ProgressRedirected = [Console]::IsOutputRedirected
 $ProgressEveryMs    = if ($ProgressRedirected) { 2500 }  else { 250 }
 $ProgressTimer      = [System.Diagnostics.Stopwatch]::StartNew()
@@ -858,7 +861,7 @@ function Write-ScanProgress
 
     $Span   = $Stopwatch.Elapsed
 
-    # Use escaped comma '000\,000' to display a literal comma with
+    # Use escaped comma "000\,000" to display a literal comma with
     # leading zero padding
     $FormattedDirs  = $DirCount.ToString("000\,000", $Inv)
     $FormattedFiles = $FileCount.ToString("000\,000", $Inv)
@@ -1029,8 +1032,10 @@ else
 {
     try
     {
-        $Answer = Read-Host ("[-] Type Y to confirm you have read this notice " +
-            "and wish to continue") -ErrorAction Stop
+        $Answer = Read-Host (
+            "[-] Type Y to confirm you have read this notice and " +
+            "wish to continue"
+        ) -ErrorAction Stop
 
         if ($Answer -match '^\s*(y|yes)\s*$')
         {
@@ -1072,9 +1077,12 @@ $Stopwatch       = [System.Diagnostics.Stopwatch]::StartNew()
 
 $RootPath = Resolve-FullPath -Path $Folder
 
-Show-Message -Text ("Enumerating target directory: ",
+Show-Message -Text (
+    "Enumerating target directory: ",
     "$RootPath ",
-    "and all sub-directories...") -Color Gray, Green, Gray -LinesAbove 1
+    "and all sub-directories..."
+    ) -Color Gray, Green, Gray `
+    -LinesAbove 1
 
 Show-Message -Text "Please wait, this may take a hot minute..." `
     -Color Green -NoTime -LinesAbove 1 -Indent $ShortIndent
@@ -1097,8 +1105,11 @@ $CsvDir = Resolve-FullPath -Path $CsvDir
 if ([string]::IsNullOrEmpty($CsvDir))
 {
 
-    Show-Message -Text ("The '-Csv' parameter must include a directory " +
-        "path, e.g. E:\case1") -Color Red
+    Show-Message `
+        -Text (
+            "The '-Csv' parameter must include a directory " +
+            "path, e.g. E:\case1."
+        ) -Color Red
     exit 1
 }
 
@@ -1110,11 +1121,11 @@ if (-not [System.IO.Directory]::Exists($CsvDir))
     exit 1
 }
 
-# Volume serial number (opt-in: needs a CIM/WMI query).  It is looked up
-# here, before the output path is built, because it becomes part of the
-# output file name.
-
-
+<#
+Volume serial number (opt-in: needs a CIM/WMI query).  It is looked up
+here, before the output path is built, because it becomes part of the
+output file name.
+#>
 $VolRoot      = [System.IO.Path]::GetPathRoot($RootPath)  # returns "F:\"
 $Device       = $VolRoot.TrimEnd($Sep)  # returns "F:"
 $DriveLetter  = $VolRoot.TrimEnd(":\")  # returns "F"
@@ -1194,8 +1205,11 @@ if ([string]::Equals(
         [System.StringComparison]::OrdinalIgnoreCase
     )
 ) {
-    Show-Message -Text ("Output is on the same volume as the folder being examined. " +
-        "For forensic soundness, write to separate media.") -Color Yellow
+    Show-Message `
+        -Text (
+            "Output is on the same volume as the folder being examined. " +
+            "For forensic soundness, write to separate media."
+        ) -Color Yellow
 }
 
 $IncludePatterns = New-DirPatterns -Names $Include
@@ -1222,10 +1236,12 @@ if ($DriveType -eq "Network")
 }
 else
 {
-    $DriveSerialNumber = (Get-Partition -DriveLetter $DriveLetter `
+    $DriveSerialNumber = (Get-Partition `
+        -DriveLetter $DriveLetter `
         -ErrorAction Continue |
         Get-Disk).SerialNumber.Trim(" ")
 }
+
 
 $DriveVolLabel  = $Drive.VolumeLabel
 $DriveTotalSize = [string]::Format($Inv, "{0:N0}", $Drive.TotalSize)
@@ -1256,8 +1272,14 @@ $TotalBytes = [long]0
 # Each stack item = (directory, "this directory and its files should be recorded")
 $Stack    = [System.Collections.Generic.Stack[System.Tuple[System.IO.DirectoryInfo, bool]]]::New()
 $RootDir  = [System.IO.DirectoryInfo]::New($RootPath)
-$RootCapt = (-not $UseInclude) -or (Test-DirMatch -Dir $RootDir -Patterns $IncludePatterns)
-$Stack.Push([System.Tuple[System.IO.DirectoryInfo, bool]]::New($RootDir, [bool]$RootCapt))
+$RootCapt = (-not $UseInclude) -or (
+    Test-DirMatch `
+        -Dir $RootDir `
+        -Patterns $IncludePatterns
+)
+$Stack.Push(
+    [System.Tuple[System.IO.DirectoryInfo, bool]]::New($RootDir, [bool]$RootCapt)
+)
 
 $Stream = $null
 $Writer = $null
@@ -1368,8 +1390,9 @@ try
                 catch
                 {
                     $Errors.Add("$( $File.FullName ) => $( $_.Exception.Message )")
-                    Write-ScanWarning -Message ("Could not read $( $File.FullName ) => " +
-                        "$( $_.Exception.Message )")
+                    Write-ScanWarning `
+                        -Message ("Could not read $( $File.FullName ) => " +
+                            "$( $_.Exception.Message )")
                 }
             }
         }
@@ -1379,7 +1402,11 @@ try
 
         foreach ($Sd in ($SubDirs | Sort-Object -Property Name -Descending))
         {
-            if ($UseExclude -and (Test-DirMatch -Dir $Sd -Patterns $ExcludePatterns))
+            if ($UseExclude -and (
+                Test-DirMatch `
+                    -Dir $Sd `
+                    -Patterns $ExcludePatterns
+                ))
             {
                 $Skipped.Add("EXCLUDED => $( $Sd.FullName )")
                 continue
@@ -1423,18 +1450,23 @@ try
                             $Real + $Sep,
                             [System.StringComparison]::OrdinalIgnoreCase))
                     {
-                        $SkipReason = "Not followed => loop, target contains the link"
+                        $SkipReason = "Not followed => loop, target contains " +
+                            "the link"
                     }
                     elseif (-not $FollowedTargets.Add($Real))
                     {
-                        $SkipReason = "Not followed => target already listed through another link"
+                        $SkipReason = "Not followed => target already listed " +
+                            "through another link"
                     }
                 }
 
                 if ($SkipReason)
                 {
                     # Recorded as a row (with its target) if it is in capture scope.
-                    $Skipped.Add("REPARSEPOINT ($SkipReason) => $( $Sd.FullName ) => $Target")
+                    $Skipped.Add(
+                        "REPARSEPOINT ($SkipReason) => $( $Sd.FullName ) " +
+                        "=> $Target"
+                    )
 
                     if ($ChildCapt)
                     {
@@ -2021,8 +2053,6 @@ catch
     "Unable to hash the manifest file => $( $_.Exception.Message )"
 }
 
-
-# Write-Host ("`n" + "-" * 50 + "`n") -ForegroundColor Green
 Show-Message -Text "Script completed in ", "$( $ElapsedTime )" -Color Gray, Green
 
 Show-Message -Text "Enumerated:" -Color Gray
@@ -2049,11 +2079,7 @@ Show-Message `
     -Indent $ShortIndent
 
 
-Show-Message `
-    -Text "Output Folder:" `
-    -Color Gray `
-    -LinesAbove 1
-
+Show-Message -Text "Output Folder:" -Color Gray -LinesAbove 1
 Show-Message `
     -Text "$( [System.IO.Path]::GetDirectoryName($OutFilePath) ) " `
     -Color Green `
