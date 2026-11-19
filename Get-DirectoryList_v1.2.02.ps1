@@ -328,7 +328,8 @@ function Show-Message
 
     if (-not $NoTime)
     {
-        $Timestamp = (Get-Date).ToUniversalTime().ToString("yyyy.MM.ddTHH.mm.ss.fffZ")
+        $Timestamp = (Get-Date).ToUniversalTime().ToString(
+            "yyyy.MM.ddTHH.mm.ss.fffZ")
         Write-Host "[$Timestamp] " -ForegroundColor DarkCyan -NoNewline
     }
 
@@ -340,7 +341,10 @@ function Show-Message
 
     for ($i = 0; $i -lt $Text.Count; $i++)
     {
-        $hostArgs = @{ Object = $Text[$i]; NoNewline = $true }
+        $hostArgs = @{
+            Object = $Text[$i]
+            NoNewline = $true
+        }
 
         if ($i -lt $Color.Count)
         {
@@ -385,6 +389,7 @@ function Resolve-FullPath
     (
         [string]$Path
     )
+
     [System.IO.Path]::GetFullPath(
         $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
     )
@@ -397,6 +402,7 @@ function New-DirPatterns
     (
         [string[]]$Names
     )
+
     $Opts = [System.Management.Automation.WildcardOptions]::IgnoreCase -bor
             [System.Management.Automation.WildcardOptions]::CultureInvariant
 
@@ -426,6 +432,7 @@ function Test-DirMatch
         [System.IO.DirectoryInfo]$Dir,
         $Patterns
     )
+
     foreach ($Pattern in $Patterns)
     {
         if ($Pattern.IsMatch($Dir.Name) -or $Pattern.IsMatch($Dir.FullName))
@@ -784,9 +791,9 @@ function Write-Row
     }
     else
     {
-        $Ext = ""
+        $Ext   = ""
         $Bytes = ""
-        $Kb = ""
+        $Kb    = ""
     }
 
     $Writer.WriteLine(
@@ -839,6 +846,7 @@ function Get-ProgressWidth
     }
 }
 
+
 function Write-ScanProgress
 {
     param
@@ -850,7 +858,8 @@ function Write-ScanProgress
 
     $Span   = $Stopwatch.Elapsed
 
-    # Use escaped comma '000\,000' to display a literal comma with leading zero padding
+    # Use escaped comma '000\,000' to display a literal comma with
+    # leading zero padding
     $FormattedDirs  = $DirCount.ToString("000\,000", $Inv)
     $FormattedFiles = $FileCount.ToString("000\,000", $Inv)
 
@@ -872,13 +881,15 @@ function Write-ScanProgress
 
     if ($ProgressRedirected)
     {
-        Show-Message -Text "$Prefix$CurrentDir" -Color Gray -NoTime -Indent $ShortIndent
+        Show-Message -Text "$Prefix$CurrentDir" -Color Gray -NoTime `
+            -Indent $ShortIndent
         return
     }
 
     $RemainingForDir = $MaxLineLength - $Prefix.Length
 
-    # If space is too tight, guarantee a minimum window for the path instead of hiding it
+    # If space is too tight, guarantee a minimum window for the path instead 
+    # of hiding it
     if ($RemainingForDir -lt 15)
     {
         $RemainingForDir = 15
@@ -906,7 +917,8 @@ function Write-ScanProgress
         $Line = $Line.Substring(0, $MaxLineLength)
     }
 
-    Show-Message -Text ($Line.PadRight($MaxLineLength)) -Color Gray -NoTime -Indent 4
+    Show-Message -Text ($Line.PadRight($MaxLineLength)) -Color Gray -NoTime `
+        -Indent 4
     $script:ProgressActive = $true
 }
 
@@ -916,7 +928,8 @@ function Clear-ScanProgress
     # Blanks the status line and leaves the cursor at the start of it.
     if ($ProgressActive)
     {
-        Show-Message -Text ("`r" + (" " * (Get-ProgressWidth)) + "`r") -Color Gray -NoNewline
+        Show-Message -Text ("`r" + (" " * (Get-ProgressWidth)) + "`r") `
+            -Color Gray -NoNewline
         $script:ProgressActive = $false
     }
 }
@@ -1016,8 +1029,9 @@ else
 {
     try
     {
-        $Answer = Read-Host "[-] Type Y to confirm you have read this notice and wish to continue" `
-            -ErrorAction Stop
+        $Answer = Read-Host ("[-] Type Y to confirm you have read this notice " +
+            "and wish to continue") -ErrorAction Stop
+
         if ($Answer -match '^\s*(y|yes)\s*$')
         {
             $NoticeStatus = "Acknowledged by examiner"
@@ -1112,12 +1126,17 @@ if ($Device -match "^[A-Za-z]:$")
 {
     try
     {
-        $Ld = Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='$Device'" `
-            -Property VolumeSerialNumber -ErrorAction Stop
+        $Ld = Get-CimInstance `
+            -ClassName Win32_LogicalDisk `
+            -Filter "DeviceID='$Device'" `
+            -Property VolumeSerialNumber `
+            -ErrorAction Stop
+
         # Keep only letters/digits so the value is always safe in a file name.
         if ($Ld)
         {
-            $VolumeSerial = ([string]$Ld.VolumeSerialNumber) -replace "[^0-9A-Za-z]", ""
+            $VolumeSerial = ([string]$Ld.VolumeSerialNumber) `
+                -replace "[^0-9A-Za-z]", ""
         }
     }
     catch
@@ -1173,7 +1192,7 @@ if ([string]::Equals(
         [System.IO.Path]::GetPathRoot($RootPath),
         [System.IO.Path]::GetPathRoot($OutFilePath),
         [System.StringComparison]::OrdinalIgnoreCase
-        )
+    )
 ) {
     Show-Message -Text ("Output is on the same volume as the folder being examined. " +
         "For forensic soundness, write to separate media.") -Color Yellow
@@ -1252,6 +1271,7 @@ try
         [System.IO.FileAccess]::Write,
         [System.IO.FileShare]::Read
     )
+
     # Unicode (UTF-16 LE with BOM) matches the original
     # 'Export-Csv -Encoding Unicode' output.
     $Writer = [System.IO.StreamWriter]::New(
@@ -1296,8 +1316,8 @@ try
             catch
             {
                 $Errors.Add("$( $Dir.FullName ) => $( $_.Exception.Message )")
-                Write-ScanWarning -Message ("Could not read $( $Dir.FullName ) => " +
-                    "$( $_.Exception.Message )")
+                Write-ScanWarning -Message ("Could not read $( $Dir.FullName ) " +
+                    "=> $( $_.Exception.Message )")
             }
         }
 
@@ -1321,8 +1341,8 @@ try
         catch
         {
             $Errors.Add("$( $Dir.FullName ) => $( $_.Exception.Message )")
-            Write-ScanWarning -Message ("Could not fully read $( $Dir.FullName ) => " +
-                "$( $_.Exception.Message )")
+            Write-ScanWarning -Message ("Could not fully read $( $Dir.FullName ) " +
+                "=> $( $_.Exception.Message )")
         }
 
         # Files in this directory (only if this branch is being captured)
@@ -1354,7 +1374,9 @@ try
             }
         }
 
-        # Queue subdirectories (pushed in reverse so they pop in alphabetical order)
+        # Queue subdirectories 
+        # (pushed in reverse so they pop in alphabetical order)
+
         foreach ($Sd in ($SubDirs | Sort-Object -Property Name -Descending))
         {
             if ($UseExclude -and (Test-DirMatch -Dir $Sd -Patterns $ExcludePatterns))
@@ -1372,9 +1394,11 @@ try
             if ($Sd.Attributes.HasFlag([System.IO.FileAttributes]::ReparsePoint))
             {
                 $Target = Get-ReparseTarget -Item $Sd
-                # Only junctions and symbolic links are links.  Any other reparse
-                # point (for example a cloud-sync placeholder folder) is walked
-                # like a normal directory.
+                <#
+                Only junctions and symbolic links are links.  Any other reparse
+                point (for example a cloud-sync placeholder folder) is walked
+                like a normal directory.
+                #>
                 $IsLink = Test-DirIsLink -Item $Sd -Target $Target
             }
 
@@ -1388,7 +1412,9 @@ try
                 }
                 else
                 {
-                    $Real = Resolve-LinkTargetPath -LinkPath $Sd.FullName -Target $Target
+                    $Real = Resolve-LinkTargetPath `
+                        -LinkPath $Sd.FullName `
+                        -Target $Target
                     if (-not $Real)
                     {
                         $SkipReason = "Not followed => target could not be resolved"
@@ -1424,8 +1450,8 @@ try
                         catch
                         {
                             $Errors.Add("$( $Sd.FullName ) => $( $_.Exception.Message )")
-                            Write-ScanWarning -Message ("Could not read $( $Sd.FullName ) => " +
-                                "$( $_.Exception.Message )")
+                            Write-ScanWarning -Message ("Could not read " +
+                                "$( $Sd.FullName ) => $( $_.Exception.Message )")
                         }
                     }
                     continue
@@ -1436,9 +1462,10 @@ try
                 $Followed.Add("$( $Sd.FullName ) => $Target")
             }
 
-            $Stack.Push([System.Tuple[System.IO.DirectoryInfo, bool]]::New(
-                $Sd,
-                [bool]$ChildCapt
+            $Stack.Push(
+                [System.Tuple[System.IO.DirectoryInfo, bool]]::New(
+                    $Sd,
+                    [bool]$ChildCapt
                 )
             )
         }
@@ -2000,47 +2027,80 @@ Show-Message -Text "Script completed in ", "$( $ElapsedTime )" -Color Gray, Gree
 
 Show-Message -Text "Enumerated:" -Color Gray
 
-Show-Message -Text ("File$(if ($FileCount -eq 1) { " " } else { "s" })       :  ",
+Show-Message `
+    -Text ("File$(if ($FileCount -eq 1) { " " } else { "s" })       :  ",
     "$( [string]::Format($Inv, "{0:N0}", $FileCount) ) ") `
-    -Color Gray, Green -NoTime -LinesAbove 1 -Indent $ShortIndent
+    -Color Gray, Green `
+    -NoTime `
+    -LinesAbove 1 `
+    -Indent $ShortIndent
 
-Show-Message -Text ("Director$(if ($DirRows -eq 1) { "y" } else { "ies" }) :  ",
+Show-Message `
+    -Text ("Director$(if ($DirRows -eq 1) { "y" } else { "ies" }) :  ",
     "$( [string]::Format($Inv, "{0:N0}", $DirRows) ) ") `
-    -Color Gray, Green -NoTime -Indent $ShortIndent
+    -Color Gray, Green `
+    -NoTime `
+    -Indent $ShortIndent
 
-Show-Message -Text ("Total Size  :  ", "$(Get-FormattedFileSize -Bytes $TotalBytes)") `
-    -Color Gray, Green -NoTime -Indent $ShortIndent
+Show-Message `
+    -Text ("Total Size  :  ", "$(Get-FormattedFileSize -Bytes $TotalBytes)") `
+    -Color Gray, Green `
+    -NoTime `
+    -Indent $ShortIndent
 
 
-Show-Message -Text "Output Folder:" -Color Gray -LinesAbove 1
-Show-Message -Text "$( [System.IO.Path]::GetDirectoryName($OutFilePath) ) " `
-    -Color Green -NoTime -Indent $LargeIndent
+Show-Message `
+    -Text "Output Folder:" `
+    -Color Gray `
+    -LinesAbove 1
+
+Show-Message `
+    -Text "$( [System.IO.Path]::GetDirectoryName($OutFilePath) ) " `
+    -Color Green `
+    -NoTime `
+    -Indent $LargeIndent
 
 Show-Message -Text "Csv File Name:" -Color Gray
-Show-Message -Text "$( [System.IO.Path]::GetFileName($OutFilePath) ) " `
-    -Color Green -NoTime -Indent $LargeIndent
+Show-Message `
+    -Text "$( [System.IO.Path]::GetFileName($OutFilePath) ) " `
+    -Color Green `
+    -NoTime `
+    -Indent $LargeIndent
 
 Show-Message -Text "Csv SHA-256:" -Color Gray
-Show-Message -Text "$CsvHash" -Color Green -NoTime -Indent $LargeIndent
+Show-Message `
+    -Text "$CsvHash" `
+    -Color Green `
+    -NoTime `
+    -Indent $LargeIndent
 
 
 if ($ManifestPath)
 {
     Show-Message -Text "Manifest File Name:" -Color Gray
-    Show-Message -Text "$( [System.IO.Path]::GetFileName($ManifestPath) )" `
-        -Color Green -NoTime -Indent $LargeIndent
+    Show-Message `
+        -Text "$( [System.IO.Path]::GetFileName($ManifestPath) )" `
+        -Color Green `
+        -NoTime `
+        -Indent $LargeIndent
 
     Show-Message -Text "Manifest SHA-256:" -Color Gray
-    Show-Message -Text "$ManifestHash" -Color Green -NoTime -Indent $LargeIndent
+    Show-Message `
+        -Text "$ManifestHash" `
+        -Color Green `
+        -NoTime `
+        -Indent $LargeIndent
 }
 
 Show-Message -Text ("+" + "-" * 48 + "+") -Color Green -NoTime -LinesAbove 1
 
 if ($Errors.Count -gt 0)
 {
-    Show-Message -Text ("$( $Errors.Count ) " +
-        "error$(if ($Errors.Count -eq 1) { " " } else { "s " })=> " +
-        "see the manifest for details.`n") -Color Red -LinesAbove 1
+    Show-Message `
+        -Text ("$( $Errors.Count ) error$( if ($Errors.Count -eq 1) " +
+            "{ " " } else { "s " } )=> see the manifest for details.`n") `
+        -Color Red `
+        -LinesAbove 1
 }
 
 if ($Stopwatch.IsRunning)
