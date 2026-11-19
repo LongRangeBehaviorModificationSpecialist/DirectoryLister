@@ -877,7 +877,7 @@ function Write-ScanProgress
 
     $ProgressTimer.Restart()
 
-    $Span   = $Stopwatch.Elapsed
+    $Span = $Stopwatch.Elapsed
 
     # Use escaped comma "000\,000" to display a literal comma with
     # leading zero padding
@@ -902,7 +902,10 @@ function Write-ScanProgress
 
     if ($ProgressRedirected)
     {
-        Show-Message -Text "$Prefix$CurrentDir" -Color Gray -NoTime `
+        Show-Message `
+            -Text "$Prefix$CurrentDir" `
+            -Color Gray `
+            -NoTime `
             -Indent $ShortIndent
         return
     }
@@ -938,7 +941,10 @@ function Write-ScanProgress
         $Line = $Line.Substring(0, $MaxLineLength)
     }
 
-    Show-Message -Text ($Line.PadRight($MaxLineLength)) -Color Gray -NoTime `
+    Show-Message `
+        -Text ($Line.PadRight($MaxLineLength)) `
+        -Color Gray `
+        -NoTime `
         -Indent 4
     $script:ProgressActive = $true
 }
@@ -949,8 +955,10 @@ function Clear-ScanProgress
     # Blanks the status line and leaves the cursor at the start of it.
     if ($ProgressActive)
     {
-        Show-Message -Text ("`r" + (" " * (Get-ProgressWidth)) + "`r") `
-            -Color Gray -NoNewline
+        Show-Message `
+            -Text ("`r" + (" " * (Get-ProgressWidth)) + "`r") `
+            -Color Gray `
+            -NoNewline
         $script:ProgressActive = $false
     }
 }
@@ -965,7 +973,9 @@ function Write-ScanWarning
     )
 
     Clear-ScanProgress
-    Show-Message -Text $Message -Color Yellow
+    Show-Message `
+        -Text $Message `
+        -Color Yellow
 }
 
 
@@ -1073,15 +1083,19 @@ else
 
 if ($NoticeCancelled)
 {
-    Show-Message -Text "Cancelled by the examiner. Nothing was read or written." `
-        -Color Yellow -LinesAbove 1
+    Show-Message `
+        -Text "Cancelled by the examiner. Nothing was read or written." `
+        -Color Yellow `
+        -LinesAbove 1
     exit 1
 }
 
 $NoticeStatus += " at $( [DateTime]::UtcNow.ToString("yyyy-MM-dd HH:mm:ss", $Inv) ) UTC"
 
-# Start the clock when the examination actually begins, not while the
-# notice was being read.
+<#
+Start the clock when the examination actually begins, not while the
+notice was being read.
+#>
 [string]$RunDate = [DateTime]::UtcNow.ToString("yyyy.MM.dd_HH.mm.ss")
 $StartTime       = [DateTime]::UtcNow
 $Stopwatch       = [System.Diagnostics.Stopwatch]::StartNew()
@@ -1095,20 +1109,28 @@ $Stopwatch       = [System.Diagnostics.Stopwatch]::StartNew()
 
 $RootPath = Resolve-FullPath -Path $Folder
 
-Show-Message -Text (
-    "Enumerating target directory: ",
-    "$RootPath ",
-    "and all sub-directories..."
+Show-Message `
+    -Text (
+        "Enumerating target directory: ",
+        "$RootPath ",
+        "and all sub-directories..."
     ) -Color Gray, Green, Gray `
     -LinesAbove 1
 
-Show-Message -Text "Please wait, this may take a hot minute..." `
-    -Color Green -NoTime -LinesAbove 1 -Indent $ShortIndent
+Show-Message `
+    -Text "Please wait, this may take a hot minute..." `
+    -Color Green `
+    -NoTime `
+    -LinesAbove 1 `
+    -Indent $ShortIndent
+
 Show-Message -Text "" -NoTime
 
 if (-not [System.IO.Directory]::Exists($RootPath))
 {
-    Write-DirNotFoundMessage -DirType TARGET -Folder $Folder
+    Write-DirNotFoundMessage `
+        -DirType TARGET `
+        -Folder $Folder
     exit 1
 }
 
@@ -1133,9 +1155,13 @@ if ([string]::IsNullOrEmpty($CsvDir))
 
 if (-not [System.IO.Directory]::Exists($CsvDir))
 {
-    # Deliberately not created
-    # Creating directories is an extra change to the file system
-    Write-DirNotFoundMessage -DirType OUTPUT -Folder $CsvDir
+    <#
+    Deliberately not created.
+    Creating directories is an extra change to the file system
+    #>
+    Write-DirNotFoundMessage `
+        -DirType OUTPUT `
+        -Folder $CsvDir
     exit 1
 }
 
@@ -1184,8 +1210,11 @@ if (-not $VolumeSerial)
     {
         $SerialNote = "Unavailable"
     }
-    Show-Message -Text ("Volume Serial Number lookup failed ($SerialNote). " +
-        "'NOSERIAL' will be used in the file name.") -Color Yellow
+    Show-Message `
+        -Text (
+            "Volume Serial Number lookup failed ($SerialNote). " +
+            "'NOSERIAL' will be used in the file name."
+        ) -Color Yellow
     $VolumeSerial = "NOSERIAL"
 }
 
@@ -1204,16 +1233,22 @@ $OutFilePath = [System.IO.Path]::Combine(
 )
 
 
-# Never write into the tree being examined
-# Would alter the target and pollute the listing
+<#
+Never write into the tree being examined.
+Would alter the target and pollute the listing.
+#>
 $RootPrefix = $RootPath.TrimEnd($Sep) + $Sep
+
 if ($OutFilePath.StartsWith(
     $RootPrefix,
     [System.StringComparison]::OrdinalIgnoreCase))
 {
-    Show-Message -Text ("Output file would be written inside the folder " +
-        "being examined. Choose an output location outside $RootPath " +
-        "(ideally external media).") -Color Red
+    Show-Message `
+        -Text (
+            "Output file would be written inside the folder " +
+            "being examined. Choose an output location outside $RootPath " +
+            "(ideally external media)."
+        ) -Color Red
     exit 1
 }
 
@@ -1262,8 +1297,16 @@ else
 
 
 $DriveVolLabel  = $Drive.VolumeLabel
-$DriveTotalSize = [string]::Format($Inv, "{0:N0}", $Drive.TotalSize)
-$DriveFreeSpace = [string]::Format($Inv, "{0:N0}", $Drive.TotalFreeSpace)
+$DriveTotalSize = [string]::Format(
+    $Inv,
+    "{0:N0}",
+    $Drive.TotalSize
+)
+$DriveFreeSpace = [string]::Format(
+    $Inv,
+    "{0:N0}",
+    $Drive.TotalFreeSpace
+)
 $DriveIsReady   = $Drive.IsReady
 
 
@@ -1355,9 +1398,14 @@ try
             }
             catch
             {
-                $Errors.Add("$( $Dir.FullName ) => $( $_.Exception.Message )")
-                Write-ScanWarning -Message ("Could not read $( $Dir.FullName ) " +
-                    "=> $( $_.Exception.Message )")
+                $Errors.Add(
+                    "$( $Dir.FullName ) => $( $_.Exception.Message )"
+                )
+                Write-ScanWarning `
+                    -Message (
+                        "Could not read $( $Dir.FullName ) " +
+                        "=> $( $_.Exception.Message )"
+                    )
             }
         }
 
@@ -1380,9 +1428,14 @@ try
         }
         catch
         {
-            $Errors.Add("$( $Dir.FullName ) => $( $_.Exception.Message )")
-            Write-ScanWarning -Message ("Could not fully read $( $Dir.FullName ) " +
-                "=> $( $_.Exception.Message )")
+            $Errors.Add(
+                "$( $Dir.FullName ) => $( $_.Exception.Message )"
+            )
+            Write-ScanWarning `
+                -Message (
+                    "Could not fully read $( $Dir.FullName ) " +
+                    "=> $( $_.Exception.Message )"
+                )
         }
 
         # Files in this directory (only if this branch is being captured)
@@ -1407,10 +1460,14 @@ try
                 }
                 catch
                 {
-                    $Errors.Add("$( $File.FullName ) => $( $_.Exception.Message )")
+                    $Errors.Add(
+                        "$( $File.FullName ) => $( $_.Exception.Message )"
+                    )
                     Write-ScanWarning `
-                        -Message ("Could not read $( $File.FullName ) => " +
-                            "$( $_.Exception.Message )")
+                        -Message (
+                            "Could not read $( $File.FullName ) => " +
+                            "$( $_.Exception.Message )"
+                        )
                 }
             }
         }
@@ -1431,7 +1488,9 @@ try
             }
 
             $ChildCapt = $Capturing -or ($UseInclude -and (
-                Test-DirMatch -Dir $Sd -Patterns $IncludePatterns
+                Test-DirMatch `
+                    -Dir $Sd `
+                    -Patterns $IncludePatterns
                 )
             )
 
@@ -1460,6 +1519,7 @@ try
                     $Real = Resolve-LinkTargetPath `
                         -LinkPath $Sd.FullName `
                         -Target $Target
+
                     if (-not $Real)
                     {
                         $SkipReason = "Not followed => target could not be resolved"
@@ -1499,9 +1559,14 @@ try
                         }
                         catch
                         {
-                            $Errors.Add("$( $Sd.FullName ) => $( $_.Exception.Message )")
-                            Write-ScanWarning -Message ("Could not read " +
-                                "$( $Sd.FullName ) => $( $_.Exception.Message )")
+                            $Errors.Add(
+                                "$( $Sd.FullName ) => $( $_.Exception.Message )"
+                            )
+                            Write-ScanWarning `
+                                -Message (
+                                    "Could not read $( $Sd.FullName ) => " +
+                                    "$( $_.Exception.Message )"
+                                )
                         }
                     }
                     continue
@@ -2071,21 +2136,27 @@ catch
     "Unable to hash the manifest file => $( $_.Exception.Message )"
 }
 
-Show-Message -Text "Script completed in ", "$( $ElapsedTime )" -Color Gray, Green
+Show-Message `
+    -Text "Script completed in ", "$( $ElapsedTime )" `
+    -Color Gray, Green
 
 Show-Message -Text "Enumerated:" -Color Gray
 
 Show-Message `
-    -Text ("File$(if ($FileCount -eq 1) { " " } else { "s" })       :  ",
-    "$( [string]::Format($Inv, "{0:N0}", $FileCount) ) ") `
+    -Text (
+        "File$(if ($FileCount -eq 1) { " " } else { "s" })       :  ",
+        "$( [string]::Format($Inv, "{0:N0}", $FileCount) ) "
+    ) `
     -Color Gray, Green `
     -NoTime `
     -LinesAbove 1 `
     -Indent $ShortIndent
 
 Show-Message `
-    -Text ("Director$(if ($DirRows -eq 1) { "y" } else { "ies" }) :  ",
-    "$( [string]::Format($Inv, "{0:N0}", $DirRows) ) ") `
+    -Text (
+        "Director$(if ($DirRows -eq 1) { "y" } else { "ies" }) :  ",
+        "$( [string]::Format($Inv, "{0:N0}", $DirRows) ) "
+    ) `
     -Color Gray, Green `
     -NoTime `
     -Indent $ShortIndent
@@ -2141,8 +2212,10 @@ Show-Message -Text ("+" + "-" * 48 + "+") -Color Green -NoTime -LinesAbove 1
 if ($Errors.Count -gt 0)
 {
     Show-Message `
-        -Text ("$( $Errors.Count ) error$( if ($Errors.Count -eq 1) " +
-            "{ " " } else { "s " } )=> see the manifest for details.`n") `
+        -Text (
+            "$( $Errors.Count ) error$( if ($Errors.Count -eq 1) " +
+            "{ " " } else { "s " } )=> see the manifest for details.`n"
+        ) `
         -Color Red `
         -LinesAbove 1
 }
